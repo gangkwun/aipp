@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X_UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, inital-scale=1.0">
+        
+        <meta property="og:title" content="나와 닮은 연예인 찾기!">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="">
+        <meta property="og:image" content="">
+        <meta property="og:description" content="당신과 닮은 연예인은 누구일까요? 지금 확인해보세요!">
+        
+        <title>닮은꼴 연애인 찾기</title>
+
+        <link rel="stylesheet" href="src/style.css">
+    </head>
+    <body>
+        <div class="video-background">
+            <div class="video-forground">
+                <iframe width="100%" height="100%" 
+                src="https://www.youtube.com/embed/eGm6wdU6cn4?list=PL3NgX4uqPt40T1iNoiN9z8CErtWHm06El?autoplay=1&mute=1" 
+                title="무료 4k영상 소스, 구름 예쁜 하늘, 미속 촬영, free download sky video clip [토니펀]" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen>
+            </iframe>
+            </div>
+        </div>
+
+        <div>Teachable Machine Image Model</div>
+        <div class="cont-main">
+            <div class="tit">
+                나와 닮은 연예인 찾기
+                <!--//6. assets의 이미지 가져오기-->
+                <div class="img-slide">
+                    <img class="img-slide-item active" src="assets/1.png" alt="이미지">
+                    <img class="img-slide-item" src="assets/2.png" alt="이미지">
+                    <img class="img-slide-item" src="assets/3.png" alt="이미지">
+                    <img class="img-slide-item" src="assets/4.png" alt="이미지">
+                    <img class="img-slide-item" src="assets/5.png" alt="이미지">
+                    <img class="img-slide-item" src="assets/6.png" alt="이미지">
+                </div>
+                <!--//7. 버튼 클래스 지정-->
+                <button type="button"  onclick="init()" class="btn-test-start">테스트 시작!</button>
+            </div>
+        </div>
+        <div class="cont-main">
+            <div class="tit"> 내 얼굴 인식하기
+                <div id="webcam-container"></div>
+                <button type="button" class="btn-start">결과 보기!</button>
+            </div>
+        </div>
+        <div class="cover">
+            <img src="assets/loading.gif" alt="">
+        </div>
+
+        <script src="src/myScript.js"></script>
+
+        <div id="label-container"></div>
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+        <script type="text/javascript">
+
+        let result;
+        
+        let btn = document.querySelector(".btn-start");
+        
+            // More API functions here:
+            // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
+
+            // the link to your model provided by Teachable Machine export panel
+            const URL = "./my_model/";
+
+            let model, webcam, labelContainer, maxPredictions;
+
+            // Load the image model and setup the webcam
+            async function init() {
+                const modelURL = URL + "model.json";
+                const metadataURL = URL + "metadata.json";
+
+                // load the model and metadata
+                // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
+                // or files from your local hard drive
+                // Note: the pose library adds "tmImage" object to your window (window.tmImage)
+                model = await tmImage.load(modelURL, metadataURL);
+                maxPredictions = model.getTotalClasses();
+
+                // Convenience function to setup a webcam
+                const flip = true; // whether to flip the webcam
+                webcam = new tmImage.Webcam(390, 390, flip); // width, height, flip
+                await webcam.setup(); // request access to the webcam
+                await webcam.play();
+
+                cover.stly.display="none";
+
+                window.requestAnimationFrame(loop);
+
+                // append elements to the DOM
+                document.getElementById("webcam-container").appendChild(webcam.canvas);
+                labelContainer = document.getElementById("label-container");
+                /*for (let i = 0; i < maxPredictions; i++) { // and class labels
+                    labelContainer.appendChild(document.createElement("div"));
+                }*/
+            }
+
+            async function loop() {
+                webcam.update(); // update the webcam frame
+                await predict();
+                window.requestAnimationFrame(loop);
+            }
+
+            // run the webcam image through the image model
+            async function predict() {
+                // predict can take in an image, video or canvas html element
+                const prediction = await model.predict(webcam.canvas);
+                /*for (let i = 0; i < maxPredictions; i++) {
+                    const classPrediction =
+                        prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+                    labelContainer.childNodes[i].innerHTML = classPrediction;
+                }*/
+
+               /* if(prediction[0].className=='유재석'&&prediction[0].probability.toFixed(2)>0.60){
+                    window.location.href="./유재석.html";
+                } 
+                else if(prediction[1].className=='강호동'&&prediction[1].probability.toFixed(2)>0.60){
+                    window.location.href="./강호동.html";
+                } 
+                
+                else if(prediction[2].className=='공유'&&prediction[2].probability.toFixed(2)>0.60){
+                    window.location.href="./공유.html";
+                } 
+                else{
+                    window.location.href="./fail.html";
+                }*/
+
+                prediction.sort((a,b)=>(b.probability-a.probability));
+                result = prediction[0].className;
+                btn.addEventListener("click",function(){
+                    window.location.href='./${result}.html';
+                });
+                
+            }
+        </script>
+    </body>
+</html>
